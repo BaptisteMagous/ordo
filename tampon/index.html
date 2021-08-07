@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ordonnance</title>
+
+    <meta name="description" content="Maquette projet Ordonnance">
+    <meta name="author" content="Baptiste MAGOUS">
+    <meta name="keywords" content="ordonnance">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Tamponneur Ordonnance</h1>
+    </div>
+    <div class="form">
+        <form enctype="multipart/form-data" action="stamp_file.php" method = "post">
+            <p>
+                Adresse mail du patient :
+                <label>
+                    <input type="email" name="email" placeholder="patient@email.fr" autofocus required>
+                    <br/>
+                </label>
+                Ordonnance :
+                <input type="file" name="filename" accept=".pdf" required/>
+                <br/>
+                <input type = "submit" value = "Envoyer"/>
+            </p>
+        </form>
+    </div>
+</body>
+</html>

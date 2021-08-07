@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ordonnance</title>
+
+    <meta name="description" content="Maquette projet Ordonnance">
+    <meta name="author" content="Baptiste MAGOUS">
+    <meta name="keywords" content="ordonnance">
+    <script src="jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Verification Ordonnance</h1>
+    </div>
+    <div class="form">
+        <p>
+            <input type="text" id="token" placeholder="Scannez l'ordonnance" autofocus required>
+        </p>
+    </div>
+    <div id="loading">
+        <p> Verification... <p>
+    </div>
+    <div id="result">
+    </div>
+    <div id="claimToken" onclick="claimToken(this.token)">
+        <p>Prendre en charge l'ordonnance</p>
+    </div>
+    <div id="error">
+    </div>
+
+<script>
+    function setLoading(loading = true){
+        document.getElementById('loading').style.display = loading?"block":"none";
+    }
+    function setClaimButton(token = null){
+        document.getElementById('claimToken').style.display = (token !== null)?"block":"none";
+        document.getElementById('claimToken').token = token;
+    }
+
+    function setResult(result = ""){
+        document.getElementById('result').innerHTML = (result===""?result:"<p>" + result + "</p>");
+    }
+    function setError(error = ""){
+        document.getElementById('error').innerHTML = (error===""?error:"<p>" + error + "</p>");
+    }
+
+    setClaimButton(); //Remove the claim button
+
+    checkToken(window.location.search);
+
+    async function getPrescription(token) {
+        return $.ajax({
+                url : 'getPrescription.php',
+                data : 'token=' + token,
+                dataType : 'json'
+            })
+        .done(function(data) {
+            return data;
+        });
+    }
+
+    async function checkToken(token){
+
+        if (token.endsWith("_")) {
+            token = token.slice(0, -1); // Get the inputted token without the _
+
+            // If the inputted token is an url (www.url.domain/page.phph?token=XXX)
+            // Dismiss the first part
+            if(token.includes("token=")) token = token.split("token=")[1];
+
+
+            setLoading(true);
+            setClaimButton(); //Remove the claim button
+            setResult("");
+            setError("");
+
+            let result = await getPrescription(token);
+            if(result.error) setError(result.error);
+            else{
+                let resultText = document.createElement("p")
+                document.getElementById('result').appendChild(resultText);
+
+                if(result.delivered) setResult("Cette ordonnance est déjà prise en charge");
+
+                else{
+                    setClaimButton(result.token);
+                    setResult("Cette ordonnance n'a pas encore été prise en charge");
+                }
+            }
+        }
+
+        setLoading(false);
+    }
+
+    async function claimToken(token) {
+        setLoading(true);
+        setClaimButton();
+        return $.ajax({
+            url: 'claimPrescription.php',
+            data: 'token=' + token,
+            dataType: 'json'
+        })
+            .done(function (data) {
+                if(data.success) {
+                    setLoading(false);
+                    setResult("Vous avez pris en charge l'ordonnance");
+                }
+            });
+    }
+
+    const inputHandler = function (e) {
+        checkToken(e.target.value);
+    }
+
+    document.getElementById('token').addEventListener('input', inputHandler);
+
+</script>
+</body>
+</html>
